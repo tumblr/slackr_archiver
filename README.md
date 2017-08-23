@@ -86,3 +86,5 @@ All activity is logged in the files:
 ### Possible Future updates: 
 + Allow message to be specified on the command line
 + Allow number of recent messages parsed to be specified on command line
+
+Copyright, 2017, Tumblr, Inc.
