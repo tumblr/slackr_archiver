@@ -134,16 +134,25 @@ if run_mode == "ACTIVE"
   channels_to_archive.each do |channel|
     channel_id = channel[:channel_id]
     channel_name = channel[:channel_name]
-    client.channels_archive(channel: channel_id)
-    client.chat_postMessage(
-      channel: channel_id,
-      text: "Hello! This channel has been found ded and has been archived. Please contact IT with any memoriam or resurrection requests."
-      )
-    archiver_log.info { "[#{channel_name}] has been archived!" }
-    # add it to the historical log of archived_channels
-    File.open("slackr_archived_channels.log", "a") { |log| log.write("#{channel_name} was archived at #{run_date}\n") }
-    # sleep for slack rate limiting
-    sleep 1
+    is_archived = client.channels_info(channel: channel_id).channel.is_archived
+
+    # if channel is not archived let's do stuff
+    if !is_archived  
+      client.chat_postMessage(
+        channel: channel_id,
+        text: "Hello! This channel looks like it hasn't been used in a while, so it has been archived! If this was done in error and/or this channel is critical, please contact IT to request this channel be unarchived and whitelisted permanently (if desired)."
+        )
+      client.channels_archive(channel: channel_id)
+      archiver_log.info { "[#{channel_name}] has been archived!" }
+      # add it to the historical log of archived_channels
+      File.open("slackr_archived_channels.log", "a") { |log| log.write("#{channel_name} was archived at #{run_date}\n") }
+      # sleep for slack rate limiting
+      sleep 1.5
+   else
+      archiver_log.info { "[#{channel_name}] has been [Previously Archived], skipping!" }
+      # sleep for slack rate limiting
+      sleep 1.5
+    end
   end
 elsif run_mode == "DRY"
   archiver_log.info { "****** Dry-Run is active. No Channels Will Be Archived ******" }
@@ -153,13 +162,22 @@ elsif run_mode == "NOTIFY"
   notify_channels.each do |channel|
       channel_id = channel[:channel_id]
       channel_name = channel[:channel_name]
-    client.chat_postMessage(
-      channel: channel_id,
-      text: "Hello! This channel looks like it hasn't been used in a while! Please note that it is now marked to be archived in 60 Days. Please contact IT to request this channel be whitelisted if you want to keep it."
-      )
-       archiver_log.info { "Notified #{channel_name} that the channel is now marked for death." }
+      is_archived = client.channels_info(channel: channel_id).channel.is_archived
+
+     # if channel is not archived let's do stuff
+     if !is_archived  
+      client.chat_postMessage(
+        channel: channel_id,
+        text: "Hello! This channel looks like it hasn't been used in a while! Please note that it will archived in 30 Days if there is no further activity. If this channel is critical, please contact IT to request this channel be whitelisted permanently."
+        )
+        archiver_log.info { "Notified #{channel_name} that the channel is now marked for death." }
        # sleep for slack rate limiting
-      sleep 1
+        sleep 1.5
+      else
+        archiver_log.info { "[#{channel_name}] has been [Previously Archived], skipping!" }
+        # sleep for slack rate limiting
+        sleep 1.5
+      end
   end
 else
   archiver_log.info { "Erm... Something strange happened."}
@@ -180,5 +198,3 @@ puts "  Channels Notified: #{notify_channels} \n\n" if ["NOTIFY", "DRY"].include
 puts"See slackr_archiver.log for details."
 puts "#{run_mode} Mode Run Complete. It's ok, no changes were made IRL.\n\n" if ["DRY"].include?(run_mode)
 puts "#{run_mode} Mode Run Complete. \n\n" if ["NOTIFY", "ACTIVE"].include?(run_mode)
-
-
