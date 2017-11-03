@@ -134,10 +134,10 @@ if run_mode == "ACTIVE"
   channels_to_archive.each do |channel|
     channel_id = channel[:channel_id]
     channel_name = channel[:channel_name]
-    is_archived = client.channels_info(channel: channel_id)
-    is_archived = is_archived.channel.is_archived
+    is_archived = client.channels_info(channel: channel_id).channel.is_archived
 
-    if !is_archived  # if channel is not archived let's do stuff
+    # if channel is not archived let's do stuff
+    if !is_archived  
       client.chat_postMessage(
         channel: channel_id,
         text: "Hello! This channel looks like it hasn't been used in a while, so it has been archived! If this was done in error and/or this channel is critical, please contact IT to request this channel be unarchived and whitelisted permanently (if desired)."
@@ -162,10 +162,10 @@ elsif run_mode == "NOTIFY"
   notify_channels.each do |channel|
       channel_id = channel[:channel_id]
       channel_name = channel[:channel_name]
-      is_archived = client.channels_info(channel: channel_id)
-      is_archived = is_archived.channel.is_archived
+      is_archived = client.channels_info(channel: channel_id).channel.is_archived
 
-    if !is_archived  # if channel is not archived let's do stuff
+     # if channel is not archived let's do stuff
+     if !is_archived  
       client.chat_postMessage(
         channel: channel_id,
         text: "Hello! This channel looks like it hasn't been used in a while! Please note that it will archived in 30 Days if there is no further activity. If this channel is critical, please contact IT to request this channel be whitelisted permanently."
